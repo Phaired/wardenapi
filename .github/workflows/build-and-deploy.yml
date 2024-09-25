@@ -22,7 +22,6 @@ jobs:
       # We have to lower case the repository name in order to push it to the GitHub Container Registry
       - uses: actions/checkout@v4
       - name: Retrieve the repository name
-        working-directory: ./docker/api
         run: |
           echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
