@@ -22,17 +22,15 @@ jobs:
       # We have to lower case the repository name in order to push it to the GitHub Container Registry
       - uses: actions/checkout@v4
       - name: Retrieve the repository name
-        working-directory: ./docker/api
         run: |
           echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
       - name: Building the Docker image
-        working-directory: ./docker/api
         run: |
           if [ "${{ inputs.scope }}" = "BETA" ]; then
-            docker build . --tag ghcr.io/${REPO}:${{ inputs.image_version }} --tag ghcr.io/${REPO}:latest-beta
+            docker build . -f ./docker/api/Dockerfile --tag ghcr.io/${REPO}:${{ inputs.image_version }} --tag ghcr.io/${REPO}:latest-beta
           else
-            docker build . --tag ghcr.io/${REPO}:${{ inputs.image_version }} --tag ghcr.io/${REPO}:latest
+            docker build . -f ./docker/api/Dockerfile --tag ghcr.io/${REPO}:${{ inputs.image_version }} --tag ghcr.io/${REPO}:latest
           fi
 
       - name: Pushing the Docker image
