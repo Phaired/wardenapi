@@ -6,6 +6,7 @@ services:
       dockerfile: docker/api/Dockerfile
       args:
         - GO_IMAGE_VERSION=${GO_IMAGE_VERSION}
+    restart: "unless-stopped"
     ports:
       - "3000:3000"
     env_file:
@@ -15,6 +16,7 @@ services:
 
   db:
     image: postgres:${POSTGRES_VERSION}
+    restart: "unless-stopped"
     ports:
       - "5432:5432"
     environment:
