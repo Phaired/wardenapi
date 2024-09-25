@@ -35,7 +35,7 @@ jobs:
 
       - name: Pushing the Docker image
         run: |
-          docker login ghcr.io -u ${REPO} -p ${{ secrets.GITHUB_TOKEN }}
+          docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
           if [ "${{ inputs.scope }}" = "BETA" ]; then
             docker push ghcr.io/${REPO}:latest-beta
             docker push ghcr.io/${REPO}:${{ inputs.image_version }}
