@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"os"
+	"time"
 	"wardenapi/internal/models"
 	"wardenapi/internal/utils"
 )
@@ -12,6 +13,7 @@ import (
 func MapRunePriceRoutes(router *gin.Engine) {
 	router.POST("/runeprice", InsertRunePrice)
 	router.GET("/runeprice", GetLatestRunePrice)
+	router.GET("/runeprice/history", GetRunePriceHistory)
 }
 
 func InsertRunePrice(c *gin.Context) {
@@ -51,6 +53,41 @@ func GetLatestRunePrice(c *gin.Context) {
 		WHERE runeprice.server = $1
 	`
 	rows := utils.DoRequest(conn, sql, server)
+	var results []models.RunePrice
+	for rows.Next() {
+		runePrice := models.RunePrice{}
+		err := rows.Scan(&runePrice.Rune_name, &runePrice.Server, &runePrice.Date, &runePrice.Price)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
+		} else {
+			results = append(results, runePrice)
+		}
+	}
+
+	c.JSON(200, gin.H{
+		"results": results,
+	})
+}
+
+func GetRunePriceHistory(c *gin.Context) {
+	server := c.Query("server")
+	runeName := c.Query("rune_name")
+	startDate, _ := time.Parse(time.RFC3339, c.Query("start_date"))
+	endDate, _ := time.Parse(time.RFC3339, c.Query("end_date"))
+
+	conn := utils.GetConnection()
+	defer conn.Close(context.Background())
+	sql := `
+		SELECT rune_name, server, runeprice.date, price
+		FROM runeprice
+		WHERE server = $1
+		AND rune_name = $2
+		AND CASE WHEN $3 = timestamp '0001-01-01 00:00:00' THEN TRUE ELSE runeprice.date >= $3 END
+		AND CASE WHEN $4 = timestamp '0001-01-01 00:00:00' THEN TRUE ELSE runeprice.date <= $4 END
+		ORDER BY date DESC
+	`
+	fmt.Printf("Querying with %s %s %s %s\n", server, runeName, startDate, endDate)
+	rows := utils.DoRequest(conn, sql, server, runeName, startDate, endDate)
 	var results []models.RunePrice
 	for rows.Next() {
 		runePrice := models.RunePrice{}
