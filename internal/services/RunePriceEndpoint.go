@@ -11,9 +11,15 @@ import (
 )
 
 func MapRunePriceRoutes(router *gin.Engine) {
-	router.POST("/runeprice", InsertRunePrice)
-	router.GET("/runeprice", GetLatestRunePrice)
-	router.GET("/runeprice/history", GetRunePriceHistory)
+	router.POST("/runeprice", func(c *gin.Context) {
+		utils.Filter(c, InsertRunePrice)
+	})
+	router.GET("/runeprice", func(c *gin.Context) {
+		utils.Filter(c, GetLatestRunePrice)
+	})
+	router.GET("/runeprice/history", func(c *gin.Context) {
+		utils.Filter(c, GetRunePriceHistory)
+	})
 }
 
 func InsertRunePrice(c *gin.Context) {
@@ -86,7 +92,6 @@ func GetRunePriceHistory(c *gin.Context) {
 		AND CASE WHEN $4 = timestamp '0001-01-01 00:00:00' THEN TRUE ELSE runeprice.date <= $4 END
 		ORDER BY date DESC
 	`
-	fmt.Printf("Querying with %s %s %s %s\n", server, runeName, startDate, endDate)
 	rows := utils.DoRequest(conn, sql, server, runeName, startDate, endDate)
 	var results []models.RunePrice
 	for rows.Next() {
