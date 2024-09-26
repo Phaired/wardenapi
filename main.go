@@ -41,7 +41,11 @@ func main() {
 		log.Fatal(err)
 	}
 	if err := m.Up(); err != nil {
-		log.Fatal(err)
+		if err.Error() == "no change" {
+			log.Println("No changes to migrate.")
+		} else {
+			log.Fatal(err)
+		}
 	}
 
 	router := gin.Default()
